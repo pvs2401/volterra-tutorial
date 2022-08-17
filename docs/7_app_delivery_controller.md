@@ -1,56 +1,56 @@
 # Application Delivery Controller
 
-Mesh単体で仮想マシンや既存Kubernetes ClusterにWAFやAPIゲートウェイの機能を提供します。Internet上のMeshを利用しても良いですし、ローカルでの利用も可能です。
-[4.Ingress Gateway](4_ingress_gateway.md)の設定と機能の差分はなく、Origin poolでのEndpointの指定のみが異なります。
+Mesh alone provides WAF and API gateway functionality to virtual machines and existing Kubernetes Clusters.It is also possible to use Mesh on the Internet, and it is also possible to use it locally.
+[4.Ingress Gateway](4_ingress_gateway.md There is no difference in the configuration and functionality of the Origin pool, only the Endpoint specification in the Origin pool is different.
 
 ![app_delivery_cntl1](./pics/app_delivery_cntl1.svg)
 
-ESXiやKVM上にNginxでWebSiteをたちあげ、MeshのInsideインターフェイスからインターネット経由でサービスを公開します。
-構成はOutsideのみのワンアームまたは、Outside/Insideのルーティングが可能です、
+Nginx provides website on ESXi and KVM to publish the service via the Internet from Mesh's Inside interface.
+The configuration can be outside-only one-arm or Outside/Inside routing、
 
 ![app_delivery_cntl2](./pics/app_delivery_cntl2.svg)
 
-## Origin poolの作成
+## Create Origin pool
 
-namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
-Mesh経由で通信したいVMのIPアドレスをOrigin-poolに登録します。
+Let namespace be `security` and virtual-site create `vsite-adc'.
+Register the IP address of the VM you want to communicate with via Mesh in Origin-pool.
 
 - origin pool
   - name: `nginx-vm`
-  - Select Type of Orivin Server: `Private IP of Origin Server on given Stes`を選択します。
+  - Select Type of Orivin Server: Select `Private IP of Origin Server on given Stes`.
 
-  - IP: `実際のNginxサーバのIPアドレス`
+  - IP: `IP address of actual Nginx server'
   - Select site or Virtual site: `virtual-site`
   - virsual-site: `vsite-adc`
   - Slect Network on the site: `Outside Network`
   - port: `80`
   
-    (MultiNICの場合はInside,Single NICの場合はOutside)
+    (Inside for Multiic, Outside for Single NIC)
 
-> Add itemで複数サーバを追加できます。
+ You can add multiple servers with > Add item.
 
 ![app_delivery_cntl_origin.png](./pics/app_delivery_cntl_origin.png)
 
-## HTTP load balancerの設定 (from Internet)
+## Configure HTTP load balancer (from Internet)
 
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+Under Manage -> HTTP Load Balancers, select ”Add HTTP load balancer".
 
 - HTTP load balancer
   - Name: `nginx-ingress`
   - Basic Configuration
     - Domains: `dummy.domain`
 
-    外部DNSサーバがない場合、CNAME用にに、払い出されたドメインををHTTP load Balancerのドメイン名に設定すると、Webブラウザなどでアクセスできます。dummiy.domainを払い出されたドメインで上書きしてください。
+    If you do not have an external DNS server, set the issued domain for CNAME to the domain name of the HTTP load Balancer, and you can access it via a web browser, for example.dummiy.Please overwrite the domain with the domain that was paid out.
     - Select Type of Load Balancer: `HTTP`
     - Default Route Origin Pools: `nginx-vm`
 
 ![app_delivery_cntl_httplb1.png](./pics/app_delivery_cntl_httplb1.png)
 ![app_delivery_cntl_httplb2.png](./pics/app_delivery_cntl_httplb2.png)
 
-## HTTP load balancerの設定 (from Local)
+## Configure HTTP load balancer (from Local)
 
-エッジノードに直接アクセスしたい場合は、Custom Adcertise VIPを設定します。
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+If you want direct access to the edge node, configure Custom Adcertise VIP.
+Under Manage -> HTTP Load Balancers, select ”Add HTTP load balancer".
 
 - HTTP load balancer
   - Basic Configuration
@@ -65,7 +65,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
       - Site Network: `Inside and Outside Network`
       - Virtual Site Reference: `vsite-adc`
 
-## 確認
+## Confirm
 
-設定するとDNS infoにDCSからdomain名が払い出されます。任意のDNSサーバのCNAMEレコードに設定してください。
-ドメインにアクセスするとNginxのWebUIが表示されます。
+If set, the domain name will be sent out from the DCS to DNS info.Set it to the CNAME record of any DNS server.
+When you access the domain, you will see the Nginx WebUI.
