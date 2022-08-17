@@ -1,45 +1,45 @@
-# F5 Distributed Cloud Services チュートリアル
+# F5 Distributed Cloud Services Tutorial
 
-本ドキュメントはF5 Distributed Cloud Services (DCS) (<https://www.f5.com/cloud>) の機能を使うにあたり、DCSの基礎知識とDCSのMesh/AppStackを使用するにあたり、基本的なコンフィグの習得を目的としています。
+This document provides basic knowledge of DCS and basic configurations for using DCS Mesh/AppStack when using the functions of F5 Distributed Cloud Services (DCS) (<https://www.f5.com/cloud>). is intended for learning.
 
-* 本ドキュメントはF5 Distributed Cloud Serviceアンオフィシャルです。
+* This document is unofficial for F5 Distributed Cloud Service.
 
-## 簡単な説明
+## easy explanation
 
-DCSはKubernetes基盤(AppStack)やApplication Securityを提供するゲートウェイ(Mesh)を提供します。
-Freeのアカウントは <https://console.ves.volterra.io/signup/usage_plan> より取得できます。
+DCS provides a Kubernetes infrastructure (AppStack) and a gateway (Mesh) that provides Application Security.
+Free account can be obtained from <https://console.ves.volterra.io/signup/usage_plan>.
 
-## Mesh機能
+## Mesh function
 
-MeshはApp to App通信の制御や暗号化、高度なIngress/Egressゲートウェイ機能、ロードバランスなどを提供します。
+Mesh provides App to App communication control and encryption, advanced Ingress/Egress gateway functionality, load balancing, and more.
 
-* L3-L4セキュリティ
-* L7セキュリティ
-* APIゲートウェイ
-* LB
+* L3-L4 security
+* L7 Security
+* API Gateway
+*LB
 
-他の機能はこちらを参照して下さい。<https://www.f5.com/cloud/products/platform-overview>
+See here for other functions. <https://www.f5.com/cloud/products/platform-overview>
 
-## AppStack機能
+## AppStack Features
 
-AppStackはマネージドKubernetesとして、ノード管理、アプリケーション配信、エンタープライズレベルのシークレットなどの機能を提供します。
+As a managed Kubernetes, AppStack provides features such as node management, application delivery, and enterprise-level secrets.
 
-* マネージドKuberners
-* クラスタリング
-* Fleetマネジメント
+* Managed Kuberners
+* Clustering
+* Fleet management
 * KMS
 
-他の機能はこちらを参照して下さい。<https://www.f5.com/cloud/products/platform-overview>
+See here for other functions. <https://www.f5.com/cloud/products/platform-overview>
 
-## チュートリアル
+## Tutorial
 
-1. [DCSの基礎知識](./docs/1_dcs-tutorial.md)
-1. [DCS Nodeのインストールと設定](./docs/2_dcs-install.md)
-1. [Virtual Kubernetesの設定](./docs/3_virtual_kubernetes.md)
-1. [Ingress Gatewayの設定](./docs/4_ingress_gateway.md)
-1. [複数Virtual siteの使い方](./docs/5_multiple_vsite.md)
-1. [App to App 接続の設定](./docs/6_app_app.md)
+1. [Basic Knowledge of DCS](./docs/1_dcs-tutorial.md)
+1. [DCS Node installation and configuration](./docs/2_dcs-install.md)
+1. [Configure Virtual Kubernetes](./docs/3_virtual_kubernetes.md)
+1. [Ingress Gateway Settings](./docs/4_ingress_gateway.md)
+1. [How to use multiple virtual sites](./docs/5_multiple_vsite.md)
+1. [App to App connection settings](./docs/6_app_app.md)
 1. [Application Delivery Controller](./docs/7_app_delivery_controller.md)
-1. [Network policy](./docs/8_network_policy.md)
+1. [Network policy] (./docs/8_network_policy.md)
 1. [Service policy (Ingress Gateway)](./docs/9_service_policy.md)
 1. [Manage k8s](./docs/12_appstack_site.md)
