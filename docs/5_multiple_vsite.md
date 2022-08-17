@@ -6,29 +6,28 @@ The figure shows a hierarchical structure as shown below.
 
 ![vsite_object](./pics/vsite_object.svg)
 
-DeploymentやServiceなどのManifestを作成すると、Vk8s内の全てのVirtual siteに反映されます。特定のVirtual-siteだけにManifestを反映させてい場合はAnnotation `ves.io/sites`を使用します。
+When you create a Manifest such as a Deployment or Service, it will be reflected in all Virtual Sites in Vk8s. Use Annotation `ves.io/sites` if the manifest is reflected only in a specific Virtual-site.
 
-例えば、virtual-site: pref-tokyoとpref-osakaの2つがありpref-tokyoのみに反映させる場合、Annotationは
+For example, if there are two virtual-sites: pref-tokyo and pref-osaka, and only pref-tokyo is reflected, the annotation is
 
 ```metadata:
   annotations:
     ves.io/virtual-sites: namespace/pref-tokyo
 ```
 
-となります。
+becomes.
 
-複数指定する場合は
+When specifying multiple
 
 ```metadata:
   annotations:
     ves.io/virtual-sites: namespace/pref-tokyo,namespace/pref-osaka
 ```
+becomes.
 
-となります。
+## Create a workload with multiple virtual sites
 
-## 複数virtual siteをもつワークロードの作成
-
-namespace:`multi-sites`を作成し、vk8sに2つの以下の2つのVirutal siteを設定します。
+Create namespace:`multi-sites` and set 2 following 2 virtual sites in vk8s.
 
 Virtual site1
 - Name: `pref-tokyo`
@@ -40,11 +39,11 @@ Virtual site2
 - Site type: `CE`
 - Site Selecter Expression: `pref:osaka`
 
-- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
+- If you are a Free user, please delete the existing Namespace first and then create it.
 
 ![v8s_multi_vsite](./pics/v8s_multi_vsite.png)
 
-vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Deploymentを作成します。
+Create a Deployment in two Virtual-sites `pref-tokyo` and `pref-osaka` in vk8s.
 
 pref-tokyo
 
@@ -98,11 +97,13 @@ spec:
             - containerPort: 8080
 ```
 
-それぞれのVirtual siteにDeploymentが作成されます。
+
+A Deployment is created in each Virtual Site.
 
 ![deployment_multi_vsite](./pics/deployment_multi_vsite.png)
 
-vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Serviceを作成します
+Create Service in two Virtual-sites `pref-tokyo` and `pref-osaka` in vk8s
+
 
 pref-tokyo
 
@@ -144,17 +145,17 @@ spec:
     app: osaka-app
 ```
 
-## Ingress Gatewayの設定
+## Configure Ingress Gateway
 
-作成した2つのサービスをロードバランスして公開します。
+Load balance and expose the two created services.
 
 ![ingress_multi_vsite](./pics/ingress_multi_vsite.svg)
 
-### Origin poolの作成
+### Creating an origin pool
 
-作成したワークロードをそれぞれ`tokyo-app`と`osaka-app`としてOrigin-poolに登録します。
+Register the created workloads to the origin-pool as `tokyo-app` and `osaka-app` respectively.
 
-Manage -> Origin Pools で “Add Origin Pool”を選択しま
+Go to Manage -> Origin Pools and select "Add Origin Pool"
 
 - Name: `tokyo-app`
 - Origin Servers
