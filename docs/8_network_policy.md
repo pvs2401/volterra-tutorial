@@ -1,35 +1,35 @@
 # Network policy
 
-Network PolicyはL3-L4のIngress/Egressのセキュリティを提供します。
-Endpointに入ってくるトラフィックをIngress Ruleで設定し、Endpointから出ていくトラフィックをEgress Ruleで設定します。
-このポリシーはステートフルに動作するため、Egress Ruleで許可したトラフィックの戻り通信をIngress Ruleで設定する必要はありません。
+Network Policy provides Ingress/Egress security for L3-L4.
+The Ingress Rule sets the traffic coming into the Endpoint, and the Egress Rule sets the traffic coming out of the Endpoint.
+Because this policy works statefully, you do not need to configure the Ingress Rule to return traffic that the Egress Rule allows.
 
 ![network_policy1](./pics/network_policy1.svg)
 
-同一Namespace内の通信も同様で、Endpointに入ってくるトラフィックをIngress Ruleで設定し、Endpointから出ていくトラフィックをEgress Ruleで設定します。
+The same is true for communication in the same Namespace, with the Ingress Rule setting the traffic coming into the Endpoint and the Egress Rule setting the traffic coming out of the Endpoint.
 
 ![network_policy2](./pics/network_policy2.svg)
 
-## Network policyの構造
+## Network policy structure
 
-コンフィグは`Netrowk Policy` でIngress/Egressの条件を作成し、`Active Network Policies`でNetwork Policy RuleをNamespaceに対して適用します。
+The configuration creates an Ingress/Egress condition in `Netrowk Policy` and applies Network Policy Rules to Namespaces in 'Active Network Policies'.
 
 ![network_policy3](./pics/network_policy3.svg)
 
 ## Network Policy
 
-### インターネットへの通信制御
+### Communication control to the Internet
 
-namespace:`security`を作成し、vk8sにVirutal siteを設定します。
+Create namespace: 'security' and set vk8s to Virutal site.
 Name: `pref-tokyo`
 Site type: `CE`
 Site Selecter Expression: `pref:tokyo`
 
-- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
+- If you are a Free user, delete the existing Namespace first and then create it.
 
-Shared Configurationで known keyを作成します。
+Create a known key in Shared Configuration.
 
-- Freeユーザーの場合は既存のKnown labelの `pref:osaka` を先に削除してから作成してください。
+- If you are a Free user, delete the existing Known label `pref:osaka` first and then create it.
 
 Label key: `app`
 
@@ -41,7 +41,7 @@ label value:
 
 ![shared_label](./pics/shared_label.png)
 
-ラベルが異なる2つのPod, app:allow-clientとapp:deny-clientを作成します。
+Create 2 Pods, app:allow-client and app:deny-client with different labels.
 
 deny-client
 
@@ -91,23 +91,23 @@ spec:
           image: dnakajima/netutils:1.3
 ```
 
-作成したPod, deny-clientのにGoogle-DNSへのアクセスを拒否します。
-作成手順は以下となります。
-1. すべてを許可するルールの作成
-2. Google-DNSを拒否するルールの作成
-3. ルールの適用
+The Pod you created, deny-client, denies access to Google-DNS.
+The creation procedure is as follows.
+1. Create a rule that allows everything
+2. Create a rule to deny Google-DNS
+3. Applying Rules
 
 
 ![network_policy_same_node](./pics/network_policy_same_node.svg)
 
-Network Policyは `Manage` -> `vK8s Network Policies` -> `Network Policies`で作成します。
+Create a Network Policy in `Manage` -> `vk8s Network Policies' -> 'Network Policies'.
 
 ![network_policy_ui1](./pics/network_policy_ui1.png)
 
 
-1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
+1. Because there is an implicit Deny, create a policy to allow everything.
 
-ルールは`Add network policy`から作成します。
+You create a rule from 'Add network policy'.
 
 - name: `allow-any`
   - Policy For Endpoints
@@ -127,7 +127,7 @@ Network Policyは `Manage` -> `vK8s Network Policies` -> `Network Policies`で�
 
 ![network_policy_block2](./pics/network_policy_block2.png)
 
-2. `deny-client`からのGoogle-DNSへの通信を拒否するルールを作成します。
+2. Create a rule to deny communication from `deny-client' to Google-DNS.
 
 - name: `deny-client`
   - Policy For Endpoints
@@ -141,7 +141,7 @@ Network Policyは `Manage` -> `vK8s Network Policies` -> `Network Policies`で�
   - Egress Rules: (Rule-1)
     - Name: `deny-destination`
     - Action: `Deny`
-    - Logging Action: `Log` # Show Advanced Fieldsを有効にすると表示されます。Logを有効にすると Site Security でログが表示されます。
+    - Logging Action: 'Log' # Show Displays when Advanced Fields is enabled.If you enable Log, Site Security displays the log.
     - Select Other Endpoint: `IPv4 Prefix List`
       - IPv4 Prefix List: `8.8.4.4/32`, `8.8.8.8/32`
     - Select Type of Traffic to Match: `Match All Traffic`
@@ -152,41 +152,41 @@ Network Policyは `Manage` -> `vK8s Network Policies` -> `Network Policies`で�
     - Select Other Endpoint: `Any Endpoint`
     - Select Type of Traffic to Match: `Match All Traffic`
 
-3. 作成したルールを適用します。
+3. Apply the rules you created.
 
-`Manage` -> `vK8s Network Policies` -> `Active Network Policies` から作成したポリシーを選択し、適用します。1から順番にポリシーが評価されるため、個別のポリシー設定が若番に来るように設定します。
+Select the policy you created from `Manage` -> `vk8s Network Policies' -> 'Active Network Policies' and apply it.Since the policies are evaluated in order from 1, set the individual policy settings to come to the wakaban.
 
   -  Active Network Policies: [1: deny-client, 2: allow-client]
 
 ![network_policy_block3](./pics/network_policy_block3.png)
 
-フィルターの確認はPodから行えます。Virtual K8sの Pods から対象のPodに Exec to Containerより接続できます。
+You can check the filter from the Pod.You can connect to the target Pod from the Virtual K8s Pods via Exec to Container.
 
 ![network_policy_block4](./pics/network_policy_block4.png)
 
-選択後、Container to exec toから deny-clientやallow-clientを選択し、Command to executeにbashを入れるとコンテナにbashで接続できます。
+After selection, you can connect to the container by bash by selecting deny-client or allow-client from Container to exec to and putting bash in Command to execute.
 
-- kubeconfigをダウンロードし、kubectlで接続することも可能です。
+- You can also download kubeconfig and connect with kubectl.
 
-deny-clientはgoogle-dnsのポリシーがかかっているため8.8.8.8にはpingできませんが、allow-clientはpingできることが確認できます。
+I can see that deny-client cannot ping 8.8.8.8 due to google-dns policy, but allow-client can ping.
 
 ![network_policy_block5](./pics/network_policy_block5.png)
 
-System -> Site Securityよりフィルターにヒットしたログを確認できます。
-ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
+You can see the log that hit the filter from System -> Site Security.
+The logs show the Pod name of the source, the IP address and protocol of the destination, and the policies that were hit.
 
 ![network_policy_block6](./pics/network_policy_block6.png)
 
-### 同一Kubernetes Clouster内での通信制御
+### Communication control within the same Kubernetes Clouster
 
-server-appを追加で作成します。Shared namespaceのApp labelにも`server-app`をKeyとして追加してください。
+Create an additional server-app.Also add `server-app` as Key to App label in Shared namespace.
 
-ここではapp:allow-client からのみapp:server-appへの通信を許可し、 app:deny-clientからの通信は拒否します
-Freeでは3つ以上のDeplyomentが作成できないため、これ以降は Individual以上のテナント契約が必要です。
+In this case, only app:allow-client can communicate to app:server-app, and app:deny-client can communicate to app:server-app.
+Free does not allow you to create more than 3 Deplyoments, so you will need more than Individual tenant contracts after this.
 
 ![network_policy_same_node1](./pics/network_policy_same_node1.svg)
 
-app:webのPodとServiceを作成します。
+app: Create web Pods and services.
 
 ```
 apiVersion: apps/v1
@@ -232,9 +232,9 @@ spec:
   type: ClusterIP
 ```
 
-1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
+1. Because there is an implicit Deny, create a policy to allow everything.
 
-ルールは`Add network policy`から作成します。
+You create a rule from 'Add network policy'.
 
 - name: `allow-any`
   - Policy For Endpoints
@@ -250,7 +250,7 @@ spec:
     - Select Other Endpoint: `Any Endpoint`
     - Select Type of Traffic to Match: `Match All Traffic`
 
-2. deny-client用のルールを作成します。
+2. deny-Creates a rule for the client.
 
 - name: `deny-client`
   - Policy For Endpoints
@@ -264,7 +264,7 @@ spec:
   - Egress Rules: (Rule-1)
     - Name: `deny-destination`
     - Action: `Deny`
-    - Logging Action: `Log` # Show Advanced Fieldsを有効にすると表示されます。Logを有効にすると Site Security でログが表示されます。
+    - Logging Action: 'Log' # Show Displays when Advanced Fields is enabled.If you enable Log, Site Security displays the log.
     - Select Other Endpoint: `Label Selector`
       -  Selector Expression: `app:in (server-app)`
     - Select Type of Traffic to Match: `Match All Traffic`
@@ -276,15 +276,15 @@ spec:
     - Select Type of Traffic to Match: `Match All Traffic`
 
 
-Deny client用のNetwork Policyを作成し、Ingress RulesとEgress Rulesを作成します。
+Create a Network Policy for the Deny client and create Ingress Rules and Egress Rules.
 
-3. 作成したルールを適用します。
+3. Apply the rules you created.
 
-Active Network Policies から作成したポリシーを選択し、適用します。1から順番にポリシーが評価されるため、個別のポリシー設定が若番に来るように設定します。
+Select the policy you created from Active Network Policies and apply it.Since the policies are evaluated in order from 1, set the individual policy settings to come to the wakaban.
 
   -  Active Network Policies: [1: deny-client, 2: allow-client]
 
-deny-clientはのポリシーがかかっているためserver-appにはcurlできませんが、allow-clientはcurlできることが確認できます。
+I can see that the deny-client cannot curl to server-app because it has a policy of deny-client, but allow-client can curl.
 
 ![network_policy_same_node5](./pics/network_policy_same_node3.png)
 ![network_policy_same_node6](./pics/network_policy_same_node4.png)
