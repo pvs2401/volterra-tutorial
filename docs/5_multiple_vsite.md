@@ -1,8 +1,8 @@
-# 複数virtual-siteの使い方
+# How to use multiple virtual-sites
 
-Namespaceには複数のVirtual-siteを設定できます。例えば pref-tokyoやpref-osakaを作成し、実際のSiteが複数Virtual-site内に存在します。
-Vk8sを作成すると、所属させるVirtual-siteを選択できます。
-図にすると以下のような階層型構造になります。
+A Namespace can have multiple Virtual-sites. For example, pref-tokyo and pref-osaka are created, and multiple actual Sites exist within the Virtual-site.
+When you create Vk8s, you can choose the Virtual-site it belongs to.
+The figure shows a hierarchical structure as shown below.
 
 ![vsite_object](./pics/vsite_object.svg)
 
