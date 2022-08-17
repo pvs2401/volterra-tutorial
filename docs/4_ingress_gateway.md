@@ -1,21 +1,21 @@
-# Ingress Gatewayの設定
+# Configure Ingress Gateway
 
-Kubernetes Serviceはそのままでは外部からアクセスできないため、作成したAppStack上のアプリケーションに外部から接続できるようにIngress Gatewayを設定します。Internet上のMeshを利用しても良いですし、ローカルのDCS Nodeの利用も可能です。
+Since Kubernetes Service cannot be accessed externally out of the box, configure the Ingress Gateway so that you can connect externally to the application on the AppStack that you created.You can use Mesh on the Internet, or you can use a local DCS Node.
 
-Ingress GatewayはHTTP/TCP loadbalancerとして動作します。Loadlabancerの宛先はOrigin Poolとして、定義します。
+The Ingress Gateway acts as an HTTP/TCP loadbalancer.The destination of the Loadlabancer is defined as the Origin Pool.
 
 ![ingress_gw1](./pics/ingress_gw1.svg)
 
-## Origin poolの作成
+## Create Origin pool
 
-Virtual Kubernetesの設定で作成したNginxを外部からアクセスできるようにIngress Gatewayを設定します。作成したNginx ServiceをOrigin poolとして登録します。 Manage -> Loab Balancers -> Origin Pools で `Add Origin Pool`を選択します。
+Configure the Ingress Gateway so that Nginx created in the Virtual Kubernetes configuration can be accessed externally.Register the Nginx Service you created as the Origin pool. Select `Add Origin Pool` in Manage -> Loab Balancers -> Origin Pools.
 
-以下の設定をします
+Configure the following settings
 
 - Name: `nginx-endpoint`
 - Origin Servers
   - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
-  - Service Name: `nginx.namespace`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Service Name: `nginx.Enter 'namespace'. ('kubernetes service name.format of 'namespace')
   - Select Site or Virtual Site: `Virtual Site` -> `namespace/pref-tokyo`
   - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `80`
@@ -23,41 +23,41 @@ Virtual Kubernetesの設定で作成したNginxを外部からアクセスでき
 ![origin_server1](./pics/origin_server1.png)
 ![origin_server2](./pics/origin_server2.png)
 
-## インターネットからの接続
+## Connect from the Internet
 
-### HTTP load balancerの設定
+### Configure HTTP load balancer
 
-Home -> Load Balancers -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+In Home -> Load Balancers -> HTTP Load Balancers, select “Add HTTP load balancer”.
 
 - Name: `nginx-lb`
-- Domains: `dummy.domain-name` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.domain-name' (If set, the DCS will issue the domain name to DNS info.Please set the domain name that was paid out after setting up.)
 - Select Type of Load Balancer: `HTTP`
-- Default Origin servers: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
+- Default Origin servers: `namespace/nginx-endpoint` (Origin pool created above)
 
-設定するとDNS infoにDCSからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
-外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
+If set, the domain name will be sent out from the DCS to DNS info.Set it to the Domains of the load balancer you created, or to the CNAME record of any DNS server.
+Nginx's WebUI will be displayed when you access the domain you set from the outside.
 
 ![lb_config1](./pics/lb_config1.png)
 ![lb_config2](./pics/lb_config2.png)
 ![lb_config3](./pics/lb_config3.png)
 ![lb_config4](./pics/lb_config4.png)
 
-ブラウザにドメインを入力すると表示されます。
+It will appear when you enter your domain in your browser.
 
 ![nginx_ss](./pics/nginx_ss.png)
->DNSの伝搬やコンフィグの反映に1-2分かかる場合があります。
+> It may take 1-2 minutes to propagate DNS and reflect the configuration.
 
-## Local Interfaceからのアクセス
+## Access from Local Interface
 
-### HTTP Loadbalancerの設定
+### Configure HTTP Loadbalancer
 
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+Under Manage -> HTTP Load Balancers, select ”Add HTTP load balancer".
 
 - Name: `nginx-lb`
 - Domains: `nginx.domain-name`
 - Select Type of Load Balancer: `HTTP`
-- Default Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
-- VIP Configuration: `Show Advanced Fields`を有効にし、`Advertise Custom`を指定
+- Default Origin Pools: `namespace/nginx-endpoint` (Origin pool created above)
+- VIP Configuration: Enable `Show Advanced Fields` and specify `Advertise Custom`.
 - Edit Configure
   - List of Sites to Advertise
     - Select Where to Advertise: `virtual-site`
@@ -68,7 +68,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 ![lb_config6](./pics/lb_config6.png)
 ![lb_config7](./pics/lb_config7.png)
 
-ローカルDNSがない場合は/etc/hostsに設定したドメイン名とエッジノードのIPアドレスを入力するか、Curlで -H “Host: domain name”で確認します。
+If you do not have local DNS, enter the domain name and IP address of the edge node that you set in /etc/hosts, or check with Curl with -H “Host: domain name”.
 
 ```
 curl http://192.168.2.197 -H "Host: localhost.com"
@@ -99,22 +99,22 @@ Commercial support is available at
 </html>
 ```
 
-** Virtual Siteで`pref-osaka`を作成し、Virtual Site Referenceに`pref-osaka`を設定すると、pref-osakaのDCS NodeのIPアドレスにアクセスすると、Site1 - Site2の間にトンネルを動的にはり、pref-tokyoのアプリにアクセスできるようになります。
+** If you create 'pref-osaka' in the Virtual Site and set 'pref-osaka' in the Virtual Site Reference, when you access the IP address of the DCS Node in pref-osaka, you can dynamically tunnel between Site1 and Site2 and access the app in pref-tokyo.
 
 
-## トラブルシューティング
+## Troubleshooting
 
-Nginxにアクセスできない場合、同一Virtual-siteにUbuntuなどのコンテナを立ち上げ、Service経由でNginxにアクセスできるか確認してください。
+If you do not have access to Nginx, launch a container such as Ubuntu on the same Virtual-site and check if you can access Nginx via Service.
 
-Service経由でアクセスできる場合、Origin Poolが正常に稼働しているか確認してください。
-Origin poolの`Show Child Object`内のGlobal Satusが空欄の場合は、設定のService nameが間違っていたり、Virtual-siteが異なるサイトを指定している可能性があります。コンフィグに問題がない場合はサポートにケースオープンしてください。
-* 時間がかかる場合があるので、その場合はLoad balancerの設定後に再度確認してください。
+If you can access it via Service, make sure the Origin Pool is running properly.
+If Global Saturs in the `Show Child Object` of Origin pool is left blank, the Service name in the configuration may be wrong or the Virtual-site may be pointing to a different site.Please open the case to support if there is no problem with the configuration.
+* This may take some time, so check again after configuring the Load balancer.
 
-よくあるトラブル
-- Kubernetes ServiceのSelectorラベルが間違っており、PodとServiceが紐付いていない
-- Origin poolのServiceの指定が間違っている。 (namespaceが間違っているなど)
-- Virtual site / Siteが間違っている
-- Load balancer でOrigin poolの指定が間違っている
+Common Problems
+- The Kubernetes Service Selector label is wrong and the Pod and Service are not linked
+- The Service specification for Origin pool is incorrect. (For example, the namespace is wrong)
+- Virtual site/Site is wrong
+- The Origin pool is not specified correctly in the Load balancer.
 
 ![trouble_originpool1](./pics/trouble_originpool1.png)
 ![trouble_originpool2](./pics/trouble_originpool2.png)
