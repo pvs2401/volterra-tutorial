@@ -1,79 +1,79 @@
-# Virtual Kubernetesの設定
+# Configuring Virtual Kubernetes
 
-Virtual KubernetesはDCS独自の概念です。DCSでは複数のKubernetes Clusterを1つの仮想的なKubernetesとして扱います。
-このため、Virtua Kubernetesには複数のVirtual Siteを設定することができ、1つのKubernetes manifestを複数のKubernetes clusterに配布することが可能です。
+Virtual Kubernetes is a concept unique to DCS. DCS treats multiple Kubernetes Clusters as one virtual Kubernetes.
+Therefore, Virtua Kubernetes can have multiple Virtual Sites, and one Kubernetes manifest can be distributed to multiple Kubernetes clusters.
 
 ![vk8s](./pics/vk8s.svg)
 
-## ユーザーNamespaceの作成
+## Create User Namespace
 
-Virtual KubernetesはユーザーNamepsaceに作成するため、Namespaceを作成します。
-Administrationの`Personal Management` -> `My Namespaces`から、 `Add namespace`を開き、Namapace名を入れてSaveします。
-作成したNamespaceを選択すると、ユーザーNamaspaceに入れます。
+Create a Namespace because the Virtual Kubernetes will be created in the user Namespace.
+From `Personal Management` -> `My Namespaces` in Administration, open `Add namespace`, enter Namapace name and save.
+Select the created Namespace to put it in User Namaspace.
 
 ![namespace1](./pics/namespace1.png)
 ![namespace2](./pics/namespace2.png)
 
-## Virtual Siteの作成
+## Creating Virtual Sites
 
-Distributed Appsに移動し、作成したNamespaceに移動します。 Manage -> Virtual sitesより `Add Virtual site`を選択します。
-nameに virtual-site名、Site TypeはCEを選択し、Site Selector ExpressionではSiteに設定したラベルを選択します。 Continueを選択するとVirtual siteが作成されます。
+Go to Distributed Apps and navigate to the Namespace you created. Select `Add Virtual site` from Manage -> Virtual sites.
+Select the virtual-site name for name, select CE for Site Type, and select the label set for Site for Site Selector Expression. Select Continue to create a virtual site.
 
-以下の2つのVirutal siteを設定します。
+Set up the following two virtual sites.
 Name: `pref-tokyo`
 Site type: `CE`
-Site Selecter Expression: `pref:tokyo`
+Site Selector Expression: `pref:tokyo`
 
 Name: `pref-osaka`
 Site type: `CE`
-Site Selecter Expression: `pref:osaka`
+Site Selector Expression: `pref:osaka`
 
 ![vsite1](./pics/vsite1.png)
 ![vsite2](./pics/vsite2.png)
 
-## Virtual kubernetesの作成
+## Create virtual kubernetes
 
-Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを入力し、Select vsite refから作成した`pref-tokyo`を選択します。 Add Virtual k8sをクリックするとVirtual kubernetesが作成されます。
-*作成まで数十秒かかります。
+Select `Add Virtual K8s` from Applications -> Virtual k8s. Enter a name and select `pref-tokyo` created from Select vsite ref. Click Add Virtual k8s to create Virtual kubernetes.
+*It takes several tens of seconds to create.
 
 ![vk8s1](./pics/vk8s1.png)
 ![vk8s2](./pics/vk8s2.png)
 ![vk8s3](./pics/vk8s3.png)
 
-## deplyomentの作成
+## Create deplyoment
 
-作成したVirtual K8sを選択するとKuberneresの作成画面が表示されます。通常のKubernetes Manifestと同様にDeploymentやServiceを作成すると、実際のSiteにワークロードが作成されます。
+Select the created Virtual K8s to display the Kubernetes creation screen. Workloads are created in the actual Site when you create a Deployment or Service in the same way as a normal Kubernetes Manifest.
 
-下のようにAdd DeplyomentからDeploymentを設定すると、該当するSiteにコンテナが立ち上がります。
+If you set the Deployment from Add Deployment as shown below, the container will be launched on the corresponding Site.
 
 ```
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
-spec:
+specifications:
   selector:
     matchLabels:
       app: nginx
   replicas: 1
-  template:
+  templates:
     metadata:
       labels:
         app: nginx
-    spec:
+    specifications:
       containers:
-      - name: nginx
+      -name: nginx
         image: nginx:1.14.2
         ports:
         - containerPort: 80
 ```
 
-![vk8s_deplyoment1](./pics/vk8s_deployment1.png)
+![vk8s_deployment1](./pics/vk8s_deployment1.png)
 
-## Serviceの作成
+## Create Service
 
-`Add service`を選択するとYaml(json)を入力する画面が開きます。
-下のようにServiceを設定すると、該当するSiteにServiceが設定されます。
+When you select `Add service`, a screen to enter Yaml (json) opens.
+If you set the Service as below, the Service will be set for the corresponding Site.
 
 ```
 apiVersion: v1
@@ -82,9 +82,9 @@ metadata:
   name: nginx
   labels:
     app: nginx
-spec:
+specifications:
   ports:
-  - port: 80
+  - ports: 80
     targetPort: 80
     protocol: TCP
   selector:
@@ -93,30 +93,30 @@ spec:
 
 ![vk8s_service1](./pics/vk8s_service1.png)
 
-`Endpoints`をクリックするとServiceが認識しているPodが表示されます。
+Clicking on `Endpoints` will display the Pods recognized by the Service.
 
 ![vk8s_service_pod](./pics/vk8s_service_pod.png)
 
-## Kubectlからのアクセス
+## Access from Kubectl
 
-kubectlで使用するkubeconfigはユーザーNamespaceのVirtual K8sからダウンロードします。
+Download the kubeconfig used by kubectl from Virtual K8s in the user namespace.
 
-Applications -> Virtual k8sの作成済みvk8sの`・・・`から`Kubeconfig`を選択し、Kubecofigの期限を設定します。
+Select `Kubeconfig` from `...` of the created vk8s in Applications -> Virtual k8s and set the deadline for Kubecofig.
 
 ![kubeconfig1](./pics/kubeconfig1.png)
 
-`Downlaod Credential`をクリックするとKubeconfigがダウンロードされます。
+Clicking on `Downlaod Credential` will download Kubeconfig.
 
 ![kubeconfig2](./pics/kubeconfig2.png)
 
-kubectlを使用し、vk8sにアクセスします。
+Access vk8s using kubectl.
 
 ```
 kubectl --kubeconfig ~/Downloads/ves_trial_vk8s.yaml get deployment
-NAME               READY   UP-TO-DATE   AVAILABLE   AGE
-nginx-deployment   0/1     0            0           9s
+NAME READY UP-TO-DATE AVAILABLE AGE
+nginx-deployment 0/1 0 0 9s
 ```
 
-Kubeconfigなどの最大日数は Administration -> Tenant Settings -> Tenant Overview -> Credential Expiry Policy で最大365日まで変更できます。
+The maximum number of days for Kubeconfig etc. can be changed in Administration -> Tenant Settings -> Tenant Overview -> Credential Expiry Policy up to 365 days.
 
 ![expiredate](./pics/expiredate.png)
