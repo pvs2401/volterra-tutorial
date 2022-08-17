@@ -1,35 +1,35 @@
 # Service Policy (Ingress Gateway)
 
-Ingress GatewayはHTTP ベースのセキュリティを提供します。
-外部からDCS Nodeに入ってくるトラフィックをClient、Kubernetes ServiceがServerとなります。
-例えば以下の場合、外部ネットワーク(Any)となり、Kubernetes Serviceは app:webが設定されたServiceとなります。
+Ingress Gateway provides HTTP-based security.
+Traffic coming into the DCS Node from the outside is the Client, and the Kubernetes Service is the Server.
+For example, in the following cases, the external network (Any) and the Kubernetes Service will be the Service with app:web configured.
 
 ![service_policy1](./pics/service_policy1.svg)
 
-以下の場合、Clientはapp:webが設定されたPodとなり、Serverは app:DBが設定されたServiceとなります。
+In the following cases, Client will be the Pod with app:web and Server will be the Service with app:DB.
 
 ![service_policy2](./pics/service_policy2.svg)
 
-## Service policyの構造
+## Service policy structure
 
-Service Policy RuleでClinetの条件を作成し、Service PolicyでServerに対してService Policy Ruleを適用します。Service Policy SetでService Policy RuleをNamespaceに対して適用します。
+Create a Clinet condition in the Service Policy Rule and apply the Service Policy Rule to the Server in the Service Policy Rule.In the Service Policy Set, apply Service Policy Rules to the Namespace.
 
 ![service_policy3](./pics/service_policy3.svg)
 
 ## Service Policy
 
-2つのサービスを作成し、外部からdeny-serverをもつサービス(HTTP loadbalancer)は url/deny/のPathへのアクセスを拒否します。
+Create 2 services, and the service with deny-server externally (HTTP loadbalancer) denies access to the Path of the url /deny/.
 
-### インターネットからの通信制御
+### Communication control from the Internet
 
-2つのサービスを作成し、外部からdeny-serverをもつサービス(HTTP loadbalancer)は url/deny/のPathへのアクセスを拒否します。
+Create 2 services, and the service with deny-server externally (HTTP loadbalancer) denies access to the Path of the url /deny/.
 
 ![service_policy4](./pics/service_policy4.svg)
 
-#### Kubenretesの設定
+#### Kubenretes Configuration
 
-Shared Configurationで known keyを作成します。
-Free テナントの場合、既存のLabelを削除してから作成してください。
+Create a known key in Shared Configuration.
+If you are a Free tenant, delete the existing Label before creating it.
 
 Label key: `app`
 
@@ -38,8 +38,8 @@ Label value:
 - `allow-server`
 - `deny-server`
 
-namespaceは`seurity`とし、virtual-siteは`pref-tokyo`を作成します。
-ラベルが異なる2つのPod, app:allow-serverとapp:deny-serverを作成します。
+Let namespace be `security` and virtual-site create `pref-tokyo'.
+Create 2 Pods, app:allow-server and app:deny-server with different labels.
 
 allow-server
 
@@ -89,7 +89,7 @@ spec:
           image: dnakajima/inbound-app:3.0
 ```
 
-作成したPodに対応する2つのservice, を作成します。
+Create 2 service, corresponding to the Pod you created.
 
 allow-server
 
@@ -131,18 +131,18 @@ spec:
   type: ClusterIP
 ```
 
-#### Origin pool の設定
+#### Configure Origin pool
 
-作成したServiceを外部からアクセスできるようにIngress Gatewayを設定します。作成した2つの ServiceをOrigin poolとして登録します。 Manage -> Origin Pools で “Add Origin Pool”を選択します。
+Configure the Ingress Gateway so that the service you created can be accessed externally.Register the 2 services you created as Origin pools. In Manage -> Origin Pools, select “Add Origin Pool”.
 
 <b>Allow-server</b>
 
 - Name: `allow-server`
 - Origin Servers:
   - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
-  - Service Name: `allow-server.security` (”Kubernetes service名 . namespace”)
+  - Service Name: `allow-server.security` (”Kubernetes service name. namespace”)
   - Select Site or Virtual Site: `Virtual Site`
-  - Virtual Site: `pref-tokyo`。
+  - Virtual Site: `pref-tokyo`.
   - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `80`
 
@@ -151,64 +151,64 @@ spec:
 - Name: `deny-server`
 - Origin Servers:
   - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
-  - Service Name: `deny-server.security` (”Kubernetes service名 . namespace”)
+  - Service Name: `deny-server.security` (”Kubernetes service name. namespace”)
   - Select Site or Virtual Site: `Virtual Site`
-  - Virtual Site: `pref-tokyo`。
+  - Virtual Site: `pref-tokyo`.
   - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `80`
 
-#### HTTP Load Balancerの設定
+#### Configure HTTP Load Balancer
 
-Load BalancerにService PolicyでのLabelセレクトはHTTP/TCP Load BalancerのLabelsのラベルで行います。
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+The Label selection for the Load Balancer in Service Policy is done with the Labels of the HTTP/TCP Load Balancer.
+Under Manage -> HTTP Load Balancers, select ”Add HTTP load balancer".
 
 - Name: `allow-server-lb`
 - Labels: `app: allow-server`
-- Domains: `dummy.localhost` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.localhost' (if set, the DCS will issue the domain name to DNS info.Please set the domain name that was paid out after setting up.)
 - Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `security/allow-server` (上記で作成したOrigin pool)
+- Default Route Origin Pools: 'security/allow-server' (Origin pool created above)
 
-設定するとDNS infoにDCSからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
-外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
+If set, the domain name will be sent out from the DCS to DNS info.Set it to the Domains of the load balancer you created, or to the CNAME record of any DNS server.
+Nginx's WebUI will be displayed when you access the domain you set from the outside.
 
 ![service_policy5](./pics/service_policy5.png)
 
-同様にDeny server用のロードバランサーも作成します。
+Similarly, create a load balancer for the Deny server.
 
 - Name: `deny-server-lb`
 - Labels: `app: deny-server`
-- Domains: `dummy.localhost` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.localhost' (if set, the DCS will issue the domain name to DNS info.Please set the domain name that was paid out after setting up.)
 - Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `security/deny-server` (上記で作成したOrigin pool)
+- Default Route Origin Pools: `security/deny-server' (Origin pool created above)
 
-#### サービスへの接続確認
+#### Confirm connection to Service
 
-作成したサービスにアクセスできることを確認します。
-<http://url/> , <http://url/allow/> , <http://url/deny> にアクセスできることを確認します。
+Verify that you have access to the service that you created.
+<http://url />, <http://url/allow />, <http://url/deny Make sure you have access to >.
 
 ![adc_deny_1](./pics/adc_deny_1.png)
 ![adc_deny_2](./pics/adc_deny_2.png)
 ![adc_deny_3](./pics/adc_deny_3.png)
 
-#### Service policyの作成
+#### Create Service policy
 
-Service Policyは `Manage` -> `Servive Policies` -> `Service Policy`で作成します。
+Create a Service Policy in `Manage` -> `Servive Policies' -> 'Service Policy'.
 
-作成したdeny-serverの`/deny`へのアクセスを拒否します。
-作成手順は以下となります。
-1. 全てのサービスを許可するルールの作成
-2. deny-serverの`/deny`を拒否するルールの作成
-3. ルールの適用
+deny- Denies access to `/deny` in the created deny-server.
+The creation procedure is as follows.
+1. Create a rule to allow all services
+2. deny-Create a rule to deny '/deny' in server
+3. Applying Rules
 
-<b>1.全てのサービスを許可するルールの作成</b>
+<b>1.Create rules to allow all services</b>
 
-暗黙のDenyがあるため、全てを許可するポリシーを作成します
+Because there is an implicit Deny, create a policy to allow everything
 
 - name: `allow-any`
   - Server Selection: `Any Server`
   - Select Policy Rules: `Allow All Requests`
 
-<b>2. deny-serverの`/deny`を拒否するルールの作成</b>
+<b>2. deny-Create a rule to deny `/deny' in server</b>
 
 - name: `deny-server`
   - Server Selection: `Group of Servers by Label Selector`
@@ -229,38 +229,38 @@ Service Policyは `Manage` -> `Servive Policies` -> `Service Policy`で作成し
 ![adc_deny_4](./pics/adc_deny_4.png)
 ![adc_deny_5](./pics/adc_deny_5.png)
 
-<b>3. ルールの適用</b>
+<b>3. Application of rules</b>
 
-Service Policyは `Manage` -> `Servive Policies` -> `Active Service Policies`で Active Service PoliciesにService Policyを追加します
+Service Policy Add Service Policy to Active Service Policies in `Manage` -> `Servive Policies' -> 'Active Service Policies'
 
 - service-policy-set1
   - Policies: Select policy: `[1: deny-server, 2:allow-server]`
 
 ![adc_deny_6](./pics/adc_deny_6.png)
 
-#### 設定の確認
+#### Confirm Settings
 
-作成したサービスにアクセスできることを確認します。
-deny-web-serverの<http://url/>,<http://url/allow/> は正常に表示されますが、<http://url/deny>は403エラーが返るのを確認します。
+Verify that you have access to the service that you created.
+deny-web-server<http://url />,<http://url/allow /> appears fine, but <http://url/deny > will check to return a 403 error.
 
 ![adc_deny_1](./pics/adc_deny_1.png)
 ![adc_deny_2](./pics/adc_deny_2.png)
 ![adc_deny_7](./pics/adc_deny_7.png)
 
-作成したサービスにアクセスできることを確認します。
-allow-web-serverの<http://url/>,<http://url/allow/> ,<http://url/deny>,  はアクセスが可能です。
+Verify that you have access to the service that you created.
+allow-web-server<http://url />,<http://url/allow />,<http://url/deny >, is accessible.
 
-`Load Balancers` -> `NTTP Load Balancers`よりフィルターにヒットしたログを確認できます。 ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
+From `Load Balancers' -> 'NTTP Load Balancers' you can see the log that hit the filter. The logs show the Pod name of the source, the IP address and protocol of the destination, and the policies that were hit.
 
 ![adc_deny_8](./pics/adc_deny_9.png)
 
-#### Kubernetes ServiceへのService Policy適用
+#### Apply Service Policy to Kubernetes Service
 
-DCSではKubernetesのServiceのタイプが`HTTP_PROXY`, `TCP_PROXY`, `TCP_PROXY_WITH_SNI`の3種類があり、デフォルトは`TCP_PROXY`です。
-TCP ProxyではHTTPベースのフィルタはかからないため、Kubernetes ServiceのマニフェストにHTTP_PROXYを有効にするannotation｀ves.io/proxy-type｀を設定します。
-Freeアカウントでは`app-client`を建てられないため、allow-serverを削除してからマニフェストを追加してください。
+In DCS, there are 3 types of Kubernetes Service types: `HTTP_PROXY`, `TCP_PROXY`, and `TCP_PROXY_WITH_SNI`, and the default is `TCP_PROXY`.
+Because TCP Proxy does not have an HTTP-based filter, Kubernetes ServiceのマニフェストにHTTP_PROXYを有効にするannotationves.io/proxy-typeを設定します i'm not.
+Since the Free account cannot build 'app-client', remove the allow-server and then add the manifest.
 
-上記で作成したManifestを以下のように変更します。
+Change the Manifest created above to the following:
 
 ```
 apiVersion: v1
@@ -282,7 +282,7 @@ spec:
   type: ClusterIP
 ```
 
-また、Serivceに接続するクライアントを立ち上げます。
+It also launches a client that connects to Serivce.
 
 ```
 apiVersion: apps/v1
@@ -306,6 +306,6 @@ spec:
           image: dnakajima/netutils:1.3
 ```
 
-app-clientから`curl -v deny-server/deny/`を実行すると403エラーが返ってることが確認できます。
+You can see that running `curl -v deny-server/deny/' from app-client returns a 403 error.
 
 ![adc_deny_7](./pics/adc_deny_8.png)
