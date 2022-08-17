@@ -1,27 +1,27 @@
-# App to App接続
+# App to App connection
 
-同一Site内では通常のKubernetesと同様にPodはService経由で他のPodにアクセスできます。
-異なるSiteのServiceにアクセスする場合はHTTP/TCP Loadbalancerの設定が必要です。
+Within the same Site, Pods can access other Pods via Services in the same way as normal Kubernetes.
+HTTP/TCP Loadbalancer settings are required when accessing services on different sites.
 
 ![app_app1](./pics/app_app1.svg)
 
-## vk8s manifest の作成
+## create vk8s manifest
 
-namespace:`app-app`を作成し、vk8sに以下の2つのVirutal siteを設定します。
+Create namespace:`app-app` and set the following two virtual sites on vk8s.
 
 Name: `pref-tokyo`
 Site type: `CE`
-Site Selecter Expression: `pref:tokyo`
+Site Selector Expression: `pref:tokyo`
 
 Name: `pref-osaka`
 Site type: `CE`
-Site Selecter Expression: `pref:osaka`
+Site Selector Expression: `pref:osaka`
 
-- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
+- If you are a Free user, please delete the existing Namespace before creating it.
 
 ![v8s_multi_vsite](./pics/v8s_multi_vsite.png)
 
-vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Deploymentを作成します。
+Create a Deployment in two Virtual-sites `pref-tokyo` and `pref-osaka` in vk8s.
 
 pref-tokyo
 
@@ -32,16 +32,16 @@ metadata:
   name: app-client
   annotations:
     ves.io/virtual-sites: app-app/pref-tokyo
-spec:
+specifications:
   replicas: 1
   selector:
     matchLabels:
       app: app-client
-  template:
+  templates:
     metadata:
       labels:
         app: app-client
-    spec:
+    specifications:
       containers:
         - name: app-client
           image: dnakajima/netutils:1.3
@@ -56,16 +56,16 @@ metadata:
   name: osaka-app
   annotations:
     ves.io/virtual-sites: app-app/pref-osaka
-spec:
+specifications:
   replicas: 1
   selector:
     matchLabels:
       app: osaka-app
-  template:
+  templates:
     metadata:
       labels:
         app: osaka-app
-    spec:
+    specifications:
       containers:
         - name: osaka-app
           image: dnakajima/inbound-app:1.0
@@ -73,11 +73,11 @@ spec:
             - containerPort: 8080
 ```
 
-それぞれのVirtual siteにDeploymentが作成されます
+A Deployment is created in each Virtual Site
 
 ![app_app_deployment](./pics/app_app_deployment.png)
 
-vk8sにVirtual-site:`pref-osaka`にserviceを作成します
+Virtual-site in vk8s: create service in `pref-osaka`
 
 ```
 apiVersion: v1
@@ -88,7 +88,7 @@ metadata:
     app: osaka-app
   annotations:
     ves.io/virtual-sites: app-app/pref-osaka
-spec:
+specifications:
   ports:
   - port: 8080
     targetport: 8080
@@ -98,33 +98,32 @@ spec:
 ```
 
 ![app_app_service](./pics/app_app_service.png)
+## Create Ingress gateway
 
-## Ingress gatewayの作成
+### Create origin pool
 
-### origin poolの作成
-
-作成したosaka-appワークロードをOrigin-poolに登録します。
+Register the created osaka-app workload to the origin-pool.
 
 - Name: `osaka-app`
-- Origin Servers
+-Origin Servers
   - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
-  - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Service Name: Enter `osaka-app.multi-sites`. (`kubernetes service name.namespace` format)
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
   - Select Network on the Site: `Vk8s Networks on Site`
-  - Port: `8080`
+  -Port: `8080`
 
 ![app_app_origin](./pics/app_app_origin.png)
 
-### HTTP loadbalancerの作成
+### Creating an HTTP loadbalancer
 
-HTTP loadbalancerを作成し、Origin poolを設定します。
-ここで設定したdomain名(osaka-app-1)はk8s上のpodに登録され、Podがリモートサービスに接続するのに使用します。
+Create an HTTP loadbalancer and configure the origin pool.
+The domain name (osaka-app-1) set here will be registered in the pod on k8s and used by the pod to connect to the remote service.
 
 - Name: `osaka-app-lb`
 - Domains: `osaka-app-1`
 - Select Type of Load Balancer: `http`
 - Default Origin Servers: `app-app/osaka-app`
-- VIP Configuration: VIP Configuration を有効化し、`Advertise Custom` を選択しConfigureを選択
+- VIP Configuration: Enable VIP Configuration, select `Advertise Custom` and select Configure
 - Site Network: `vK8s Service Network`
 - Virtual Site Reference: `app-app/pref-tokyo`
 - Select Where to Advertise: `virtual-site`
@@ -133,14 +132,14 @@ HTTP loadbalancerを作成し、Origin poolを設定します。
 ![app_app_http_lb1](./pics/app_app_http_lb1.png)
 ![app_app_http_lb2](./pics/app_app_http_lb2.png)
 
-### アクセス確認
+### Access confirmation
 
-podへのアクセスはvk8sのPodからコンテナのコンソールにアクセスできます。
-app-clientの`Exec to Container`を選択します
+Access to the pod can be accessed from the vk8s pod to the console of the container.
+Select `Exec to Container` for app-client
 
 ![app_app_exec](./pics/app_app_exec.png)
 
-tokyo-appを選択し、 bashを入力してConnectからコンソールに接続します。`dig osaka-app-1`や`curl osaka-app-1`を入力すると、接続用のIPアドレスや、実際のosaka-appへの接続が確認できます。
+Select tokyo-app and enter bash to connect to the console from Connect. By entering `dig osaka-app-1` or `curl osaka-app-1`, you can check the IP address for connection and the actual connection to osaka-app.
 
 ![app_app_pod1](./pics/app_app_pod1.png)
 ![app_app_pod2](./pics/app_app_pod2.png)
