@@ -158,20 +158,20 @@ Register the created workloads to the origin-pool as `tokyo-app` and `osaka-app`
 Go to Manage -> Origin Pools and select "Add Origin Pool"
 
 - Name: `tokyo-app`
-- Origin Servers
+-Origin Servers
   - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
-  - Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Service Name: Enter `tokyo-app.multi-sites`. (`kubernetes service name.namespace` format)
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
   - Select Network on the Site: `Vk8s Networks on Site`
-  - Port: `8080`
+  -Port: `8080`
 
 - Name: `osaka-app`
-- Origin Servers
+-Origin Servers
   - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
-  - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Service Name: Enter `osaka-app.multi-sites`. (`kubernetes service name.namespace` format)
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
   - Select Network on the Site: `Vk8s Networks on Site`
-  - Port: `8080`
+  -Port: `8080`
 
 ![origin_multi_vsite1](./pics/origin_multi_vsite1.png)
 
