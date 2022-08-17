@@ -175,20 +175,21 @@ Go to Manage -> Origin Pools and select "Add Origin Pool"
 
 ![origin_multi_vsite1](./pics/origin_multi_vsite1.png)
 
-### HTTP loadbalancerの作成
+### Creating an HTTP loadbalancer
 
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+Go to Manage -> HTTP Load Balancers and select “Add HTTP load balancer”.
 
 - Name: `multi-vsite-lb`
-- Domains: `dummy.domain-name` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.domain-name` (When set, the domain name will be issued from DCS to DNS info. Please set the issued domain name after setting.)
 - Select Type of Load Balancer: `HTTP`
-- Default Origin servers: 上記で作成した2つのOrigin poolを設定
+- Default Origin servers: set the two origin pools created above
 
-Weightは100,100にしていますが、比率を変えることで、ローバランスレシオを調節できます。
+Weight is set to 100,100, but you can adjust the low balance ratio by changing the ratio.
 
 ![http_lb_multi_vsite1](./pics/http_lb_multi_vsite1.png)
 
-Curlなどで確認すると、tokyo-app, osaka-appでロードバランスされることが確認できます。
+
+If you check with Curl, etc., you can see that the load is balanced between tokyo-app and osaka-app.
 
 ```
 curl http://ves-io-3b89b61f-b82b-4140-915a-96f56818fd56.ac.vh.ves.io/
