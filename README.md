@@ -40,6 +40,6 @@ See here for other functions. <https://www.f5.com/cloud/products/platform-overvi
 1. [How to use multiple virtual sites](./docs/5_multiple_vsite.md)
 1. [App to App connection settings](./docs/6_app_app.md)
 1. [Application Delivery Controller](./docs/7_app_delivery_controller.md)
-1. [Network policy] (./docs/8_network_policy.md)
+1. [Network policy](./docs/8_network_policy.md)
 1. [Service policy (Ingress Gateway)](./docs/9_service_policy.md)
 1. [Manage k8s](./docs/12_appstack_site.md)
