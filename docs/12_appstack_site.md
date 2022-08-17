@@ -1,35 +1,35 @@
 # Manage Kuberetes
 
-これまでコンソールからvK8sを使ってPodなどを作成しましたが、通常のKuberetes clusterのようにローカルのAPIを使って、vK8sでは開放されていないAPIの利用も可能です。
-DCSではこの機能を[Managed K8s(Physical K8s)](https://docs.cloud.f5.com/docs/how-to/app-management/create-deploy-managed-k8s)と呼んでいます。
+Until now, we have created Pods using VK8S from the console, but it is also possible to use APIs that are not open to VK8S using local APIs like normal Kuberetes cluster.
+In DCS, this function is set to Managed K8s(Physical K8s).https://docs.cloud.f5.com/docs/how-to/app-management/create-deploy-managed-k8s We call it " <url>".
 
-Manage k8sを動作させるにはAppStack SiteでK8s clusterのテンプレートを作成し、CEをプロビジョニングする必要があります。
-テンプレートはMasterやWorkerノード、IPアドレスなどのインターフェイスの設定、外部ストレージ、GPUの有無、Kubevirtの有効可などがあります。
+In order for Manage k8s to work, you must create a template for the K8s cluster on the AppStack Site and provision the CE.
+The templates can be Master, Worker node, IP address, and other interface settings, external storage, GPU availability, Kubevirt availability, and so on.
 
-また、AppStack SiteはKuberentesの複数のManifestを定義し、組み合わせることで、同じK8sのManifestを複数サイトに簡単に適用、更新ができます。
+AppStack Site can also define and combine multiple Kuberentes Manifests to easily apply and update the same K8s Manifest to multiple sites.
 
-例えばPod Security Policyを作成し、そのManifestを3つのAppStack siteに適用することができます。
-Pod Security Policyを変更すると、その変更は3つのAppStack site(K8s cluster)に自動的に適用されます。
+For example, you can create a Pod Security Policy and apply its Manifest to 3 AppStack sites.
+When you change the Pod Security Policy, the changes are automatically applied to the 3 AppStack sites (K8s clusters).
 
 ![appstack_site1](./pics/appstack_site1.svg)
 
-## AppStack siteの作成
+## Create AppStack site
 
-Manage k8sを利用するためにAppStack siteを作成します。
+Create an AppStack site to use Manage k8s.
 
-1. Cluster Roleの作成 (Option)
-1. Cluster Role Bindingの作成
-1. Pod Security Policyの作成 (Option)
-1. K8s Clusterの作成
-1. AppStack siteの作成
-1. CEのプロビジョニング
+1. Create Cluster Role (Option)
+1. Creating a Cluster Role Binding
+1. Create Pod Security Policy (Option)
+1. Creating a K8s Cluster
+1. Creating an AppStack site
+1. Provisioning of CE
 
-### Cluster Roleの作成
+### Create a Cluster Role
 
-Home -> Cloud and Edge Sites -> Manage -> Manage K8s -> K8s Cluster Roles で “Add K8s K8s Cluster Role”を選択します。
+Under Home -> Cloud and Edge Sites -> Manage -> Manage K8s -> K8s Cluster Roles, select “Add K8s K8s Cluster Role”.
 
-Cluster roleはUIもしくはYamlで設定することが可能です。(Yamlの場合、Show Advanced Fieldsの有効可が必要です。)
-プリセットのCluster roleを利用することも可能ですが、`ves-io-admin-cluster-role` はすべてのロールが有効可されており、`ves-io-psp-permissive`は以下のような設定が入っているだけなので、商用利用では適切なRoleを設定することが推奨されます。
+The Cluster role can be configured in the UI or Yaml.(In Yaml, Show Advanced Fields must be enabled.))
+It is also possible to use the preset Cluster role, but `ves-io-admin-cluster-role` has all roles enabled, and `ves-io-psp-permissive` has only the following settings, so it is recommended to set the appropriate Role for commercial use.
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1
